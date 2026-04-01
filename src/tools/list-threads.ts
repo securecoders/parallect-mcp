@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ThreadsResponse {
   threads: Array<{
@@ -13,7 +13,7 @@ interface ThreadsResponse {
   offset: number;
 }
 
-export function registerListThreadsTool(server: McpServer, client: ParallectClient) {
+export function registerListThreadsTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "list_threads",
     {
@@ -24,7 +24,8 @@ export function registerListThreadsTool(server: McpServer, client: ParallectClie
         offset: z.number().default(0).describe("Pagination offset"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       const limit = Math.min(params.limit, 100);
       const res = await client.get<ThreadsResponse>("/api/v1/threads", {
         limit: String(limit),

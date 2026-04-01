@@ -50,7 +50,40 @@ claude mcp add parallect -- npx -y @parallect/mcp-server
 
 Then set `PARALLECT_API_KEY` in your environment.
 
-## Configuration
+## Transport Modes
+
+The server supports two transport modes: **stdio** for local MCP clients and **HTTP** for hosted/remote deployments.
+
+### Stdio (Local)
+
+Used by Cursor, Claude Desktop, Claude Code, and other local MCP clients. The API key is set via environment variable and used for all requests.
+
+### Hosted HTTP
+
+Runs as a standalone HTTP server. Each client authenticates with their own `Authorization: Bearer <token>` header, which is passed through to the Parallect API.
+
+```bash
+# Start the HTTP server
+PORT=8080 PARALLECT_API_URL=https://parallect.ai npm run start:http
+```
+
+Clients send MCP JSON-RPC messages via `POST /mcp` with their API key as a Bearer token:
+
+```bash
+curl -X POST http://localhost:8080/mcp \
+  -H "Authorization: Bearer par_live_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{...},"id":1}'
+```
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `PORT` | No | `8080` | HTTP server listen port |
+| `PARALLECT_API_URL` | No | `https://parallect.ai` | API base URL |
+
+No `PARALLECT_API_KEY` env var is needed in HTTP mode — each request carries its own token.
+
+## Configuration (stdio mode)
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -80,13 +113,22 @@ Get your API key at [parallect.ai/settings](https://parallect.ai/settings).
 ```bash
 npm install
 npm run build
+
+# stdio mode
 npm start
+
+# HTTP mode
+npm run start:http
 ```
 
 Or for development with auto-reload:
 
 ```bash
+# stdio
 npm run dev
+
+# HTTP
+npm run dev:http
 ```
 
 ## License

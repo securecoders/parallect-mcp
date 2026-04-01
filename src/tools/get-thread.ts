@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ThreadResponse {
   id: string;
@@ -36,7 +37,7 @@ interface JobResponse {
   }>;
 }
 
-export function registerGetThreadTool(server: McpServer, client: ParallectClient) {
+export function registerGetThreadTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "get_thread",
     {
@@ -46,7 +47,8 @@ export function registerGetThreadTool(server: McpServer, client: ParallectClient
         threadId: z.string().describe("Thread ID"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       let thread: ThreadResponse;
       try {
         thread = await client.get<ThreadResponse>(`/api/v1/threads/${params.threadId}`);

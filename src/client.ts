@@ -1,3 +1,5 @@
+export type ClientFactory = (extra: { authInfo?: { token?: string } }) => ParallectClient;
+
 export class ParallectClient {
   private baseUrl: string;
   private apiKey: string;

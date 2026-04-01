@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface JobResponse {
   id: string;
@@ -18,7 +19,7 @@ interface PursueResponse {
   budgetTier: string;
 }
 
-export function registerFollowUpTool(server: McpServer, client: ParallectClient) {
+export function registerFollowUpTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "follow_up",
     {
@@ -41,7 +42,8 @@ export function registerFollowUpTool(server: McpServer, client: ParallectClient)
           .describe("Budget tier for this follow-up. Defaults to same tier as parent job."),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       let parentJob: JobResponse;
       try {
         parentJob = await client.get<JobResponse>(`/api/v1/jobs/${params.jobId}`, {

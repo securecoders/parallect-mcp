@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ProvidersResponse {
   providers: Array<{
@@ -20,7 +20,7 @@ interface ProvidersResponse {
   }>;
 }
 
-export function registerListProvidersTool(server: McpServer, client: ParallectClient) {
+export function registerListProvidersTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "list_providers",
     {
@@ -34,7 +34,8 @@ export function registerListProvidersTool(server: McpServer, client: ParallectCl
           .describe("If provided, show only the defaults for this tier"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       const res = await client.get<ProvidersResponse>("/api/v1/providers", {
         budget_tier: params.budgetTier,
       });

@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ThreadCreateResponse {
   id: string;
@@ -14,7 +15,7 @@ interface ThreadCreateResponse {
   };
 }
 
-export function registerResearchTool(server: McpServer, client: ParallectClient) {
+export function registerResearchTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "research",
     {
@@ -41,7 +42,8 @@ export function registerResearchTool(server: McpServer, client: ParallectClient)
           ),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       try {
         const res = await client.post<ThreadCreateResponse>("/api/v1/threads", {
           message: params.query,
