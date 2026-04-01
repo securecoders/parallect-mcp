@@ -4,6 +4,8 @@ import { ParallectClient } from "../src/client.js";
 import { createServer } from "../src/server.js";
 
 const apiUrl = process.env.PARALLECT_API_URL ?? "https://parallect.ai";
+const mcpPublicUrl = process.env.MCP_PUBLIC_URL ?? "https://mcp.parallect.ai";
+const wwwAuthenticate = `Bearer resource_metadata="${mcpPublicUrl}/.well-known/oauth-protected-resource"`;
 
 function extractBearerToken(header: string | undefined): string | null {
   if (!header) return null;
@@ -37,6 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = extractBearerToken(req.headers.authorization);
 
   if (!token) {
+    res.setHeader("WWW-Authenticate", wwwAuthenticate);
     res.status(401).json({
       error: "invalid_token",
       error_description: "Missing Authorization: Bearer <token>",

@@ -6,6 +6,8 @@ import { createServer } from "./server.js";
 
 const apiUrl = process.env.PARALLECT_API_URL ?? "https://parallect.ai";
 const port = parseInt(process.env.PORT ?? "8080", 10);
+const mcpPublicUrl = process.env.MCP_PUBLIC_URL ?? `http://localhost:${process.env.PORT ?? "8080"}`;
+const wwwAuthenticate = `Bearer resource_metadata="${mcpPublicUrl}/.well-known/oauth-protected-resource"`;
 
 function extractBearerToken(header: string | undefined): string | null {
   if (!header) return null;
@@ -22,14 +24,31 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-function sendJson(res: ServerResponse, status: number, body: unknown) {
-  res.writeHead(status, { "Content-Type": "application/json" });
+function sendJson(res: ServerResponse, status: number, body: unknown, headers?: Record<string, string>) {
+  res.writeHead(status, { "Content-Type": "application/json", ...headers });
   res.end(JSON.stringify(body));
+}
+
+function handleOAuthDiscovery(_req: IncomingMessage, res: ServerResponse) {
+  sendJson(res, 200, {
+    resource: mcpPublicUrl,
+    authorization_servers: [apiUrl],
+    scopes_supported: ["research", "account", "billing"],
+    bearer_methods_supported: ["header"],
+  }, {
+    "Access-Control-Allow-Origin": "*",
+    "Cache-Control": "max-age=3600",
+  });
 }
 
 const httpServer = createHttpServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const path = url.pathname;
+
+  if (path === "/.well-known/oauth-protected-resource") {
+    handleOAuthDiscovery(req, res);
+    return;
+  }
 
   if (path !== "/mcp" && path !== "/") {
     sendJson(res, 404, { error: "not_found", message: "MCP endpoint is at /mcp" });
@@ -56,7 +75,7 @@ const httpServer = createHttpServer(async (req, res) => {
     sendJson(res, 401, {
       error: "invalid_token",
       error_description: "Missing Authorization: Bearer <token>",
-    });
+    }, { "WWW-Authenticate": wwwAuthenticate });
     return;
   }
 
