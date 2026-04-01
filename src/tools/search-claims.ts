@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ClaimsResponse {
   claims: Array<{
@@ -16,7 +16,7 @@ interface ClaimsResponse {
   total: number;
 }
 
-export function registerSearchClaimsTool(server: McpServer, client: ParallectClient) {
+export function registerSearchClaimsTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "search_claims",
     {
@@ -34,7 +34,8 @@ export function registerSearchClaimsTool(server: McpServer, client: ParallectCli
         limit: z.number().min(1).max(100).default(20).describe("Max results"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       if (!params.threadId && !params.jobId) {
         return {
           content: [{

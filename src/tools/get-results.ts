@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface Step {
   provider: string;
@@ -51,7 +52,7 @@ interface JobResponse {
   claims?: Claim[];
 }
 
-export function registerGetResultsTool(server: McpServer, client: ParallectClient) {
+export function registerGetResultsTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "get_results",
     {
@@ -70,7 +71,8 @@ export function registerGetResultsTool(server: McpServer, client: ParallectClien
           .describe("Include first-class claims with source links, confidence scores, and provider agreement. Falls back to legacy synthesis claims for older jobs."),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       try {
         const job = await client.get<JobResponse>(`/api/v1/jobs/${params.jobId}`, {
           include_steps: "true",

@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface BalanceResponse {
   balanceCents: number;
@@ -16,7 +16,7 @@ interface BalanceResponse {
   }>;
 }
 
-export function registerBalanceTool(server: McpServer, client: ParallectClient) {
+export function registerBalanceTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "balance",
     {
@@ -29,7 +29,8 @@ export function registerBalanceTool(server: McpServer, client: ParallectClient) 
           .describe("Include recent balance transactions"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       const res = await client.get<BalanceResponse>("/api/v1/balance", {
         include_transactions: params.includeTransactions ? "true" : undefined,
       });

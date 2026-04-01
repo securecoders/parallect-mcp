@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface UsageResponse {
   period: string;
@@ -21,7 +21,7 @@ interface UsageResponse {
   }>;
 }
 
-export function registerUsageTool(server: McpServer, client: ParallectClient) {
+export function registerUsageTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "usage",
     {
@@ -34,7 +34,8 @@ export function registerUsageTool(server: McpServer, client: ParallectClient) {
           .describe("Time period for usage statistics"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       const res = await client.get<UsageResponse>("/api/v1/usage", {
         period: params.period,
       });

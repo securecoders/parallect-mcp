@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface ClaimDetailResponse {
   id: string;
@@ -33,7 +34,7 @@ interface ClaimDetailResponse {
   }>;
 }
 
-export function registerGetClaimEvidenceTool(server: McpServer, client: ParallectClient) {
+export function registerGetClaimEvidenceTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "get_claim_evidence",
     {
@@ -48,7 +49,8 @@ export function registerGetClaimEvidenceTool(server: McpServer, client: Parallec
           .describe("Include the full event history for this claim"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       let claim: ClaimDetailResponse;
       try {
         claim = await client.get<ClaimDetailResponse>(`/api/v1/claims/${params.claimId}`);

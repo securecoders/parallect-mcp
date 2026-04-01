@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { ParallectClient, ApiError } from "../client.js";
+import { ApiError } from "../client.js";
+import type { ClientFactory } from "../client.js";
 
 interface Step {
   provider: string;
@@ -16,7 +17,7 @@ interface JobResponse {
   steps?: Step[];
 }
 
-export function registerResearchStatusTool(server: McpServer, client: ParallectClient) {
+export function registerResearchStatusTool(server: McpServer, getClient: ClientFactory) {
   server.registerTool(
     "research_status",
     {
@@ -26,7 +27,8 @@ export function registerResearchStatusTool(server: McpServer, client: ParallectC
         jobId: z.string().describe("The job ID returned by the research tool"),
       },
     },
-    async (params) => {
+    async (params, extra) => {
+      const client = getClient(extra);
       try {
         const job = await client.get<JobResponse>(`/api/v1/jobs/${params.jobId}`, {
           include_steps: "true",

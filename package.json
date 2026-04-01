@@ -4,13 +4,16 @@
   "description": "Parallect.ai MCP server — deep research from multiple AI providers",
   "type": "module",
   "bin": {
-    "parallect-mcp": "./dist/index.js"
+    "parallect-mcp": "./dist/index.js",
+    "parallect-mcp-http": "./dist/http.js"
   },
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "start:http": "node dist/http.js",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http.ts"
   },
   "keywords": ["mcp", "model-context-protocol", "research", "ai", "parallect"],
   "license": "MIT",
