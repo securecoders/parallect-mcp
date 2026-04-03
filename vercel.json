@@ -2,6 +2,7 @@
   "buildCommand": "",
   "outputDirectory": "",
   "rewrites": [
+    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/well-known/oauth-protected-resource" },
     { "source": "/mcp", "destination": "/api/mcp" }
   ],
   "functions": {
@@ -10,6 +11,14 @@
     }
   },
   "headers": [
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    },
     {
       "source": "/mcp",
       "headers": [
